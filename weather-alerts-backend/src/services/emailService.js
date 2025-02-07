@@ -1,4 +1,12 @@
-const transporter = require('../config/email');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
 
 class EmailService {
     constructor(transporter) {
@@ -39,31 +47,32 @@ class EmailService {
 }
 
 const sendWeatherAlert = async (subscriber, weatherData) => {
-    try {
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: subscriber.email,
-            subject: 'Weather Alert for Your Location',
-            html: `
-                <h2>Weather Alert for ${subscriber.location}</h2>
-                <p>Current conditions:</p>
-                <ul>
-                    <li>Temperature: ${weatherData.temperature}°C</li>
-                    <li>Conditions: ${weatherData.conditions}</li>
-                    <li>Alerts: ${weatherData.alerts || 'None'}</li>
-                </ul>
-            `
-        };
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: subscriber.email,
+      subject: 'Weather Alert for Your Location',
+      html: `
+        <h2>Weather Alert for ${subscriber.location}</h2>
+        <p>Current conditions:</p>
+        <ul>
+          <li>Temperature: ${weatherData.temperature}°C</li>
+          <li>Conditions: ${weatherData.conditions}</li>
+          <li>Humidity: ${weatherData.humidity}%</li>
+          <li>Wind Speed: ${weatherData.windSpeed} m/s</li>
+        </ul>
+      `
+    };
 
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error('Error sending email:', error);
-        return false;
-    }
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
 };
 
 module.exports = {
-    EmailService,
-    sendWeatherAlert
+  EmailService,
+  sendWeatherAlert
 };

@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 require('dotenv').config();
 const setSubscriptionRoutes = require('./routes/subscriptionRoutes');
+const scheduler = require('./scheduler'); // Import the scheduler
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +24,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Routes
 setSubscriptionRoutes(app);
+
+// Start the scheduler
+scheduler;
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
