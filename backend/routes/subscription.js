@@ -9,6 +9,10 @@ const apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = process.env.BREVO_API_KEY;
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
+// Email sender configuration from env
+const SENDER_EMAIL = process.env.SENDER_EMAIL;
+const SENDER_NAME = process.env.SENDER_NAME;
+
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -83,8 +87,8 @@ router.post('/subscribe', async (req, res) => {
       </div>
     `;
     sendSmtpEmail.sender = { 
-      email: "saicharanbalina03@gmail.com",
-      name: "NimbusAI Weather Alerts" 
+      email: SENDER_EMAIL,
+      name: SENDER_NAME 
     };
 
     await apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -157,8 +161,8 @@ router.post('/verify-otp', async (req, res) => {
       </div>
     `;
     sendSmtpEmail.sender = { 
-      email: "saicharanbalina03@gmail.com",
-      name: "NimbusAI Weather Alerts" 
+      email: SENDER_EMAIL,
+      name: SENDER_NAME 
     };
 
     await apiInstance.sendTransacEmail(sendSmtpEmail);
