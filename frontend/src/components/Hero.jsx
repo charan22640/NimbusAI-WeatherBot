@@ -2,15 +2,34 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import WeatherCard from "./WeatherCard";
 import WeatherSafety from './WeatherSafety';
+import ChatBox from './ChatBox';
+import { debounce } from 'lodash'; // Add this import at the top
+import SunriseSunset from './Sunrisesunset';
 
 const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
 const defaultCities = ["Hyderabad", "Mumbai", "Delhi", "Bangalore"];
 
-const Hero = ({ onCityChange }) => {
+// Add this utility function after the imports
+const formatLocationName = (suggestion) => {
+  const parts = suggestion.display_name.split(', ');
+  const city = parts[0];
+  const country = parts[parts.length - 1];
+  const state = parts[parts.length - 2];
+  return {
+    cityName: city,
+    fullName: `${city}, ${state}, ${country}`
+  };
+};
+
+const Hero = () => {
   const [weatherData, setWeatherData] = useState([]);
   const [location, setLocation] = useState("");
   const [searchWeather, setSearchWeather] = useState(null);
   const [error, setError] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchLocation, setSearchLocation] = useState("");
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -37,8 +56,8 @@ const Hero = ({ onCityChange }) => {
     fetchWeather();
   }, []);
 
-  const handleSearch = async () => {
-    if (!location) {
+  const handleSearch = async (searchLocation = location) => {
+    if (!searchLocation) {
         setError("Please enter a location");
         return;
     }
@@ -48,7 +67,7 @@ const Hero = ({ onCityChange }) => {
             throw new Error("API key not configured");
         }
         const res = await axios.get(
-            `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}&units=metric`
+            `https://api.openweathermap.org/data/2.5/weather?q=${searchLocation}&appid=${API_KEY}&units=metric`
         );
         
         if (!res.data) {
@@ -66,10 +85,9 @@ const Hero = ({ onCityChange }) => {
         };
         
         setSearchWeather(weatherInfo);
-        onCityChange(res.data.name);
+        setSearchLocation(res.data.name);
     } catch (error) {
         console.error("Search error:", error);
-        setSearchWeather(null);
         setError(
             error.response?.status === 404 
                 ? "Location not found. Please check the city name and try again."
@@ -78,8 +96,64 @@ const Hero = ({ onCityChange }) => {
     }
 };
 
+  // Replace the existing fetchSuggestions with this improved version
+  const fetchSuggestions = async (input) => {
+    if (input.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        'https://nominatim.openstreetmap.org/search', {
+          params: {
+            format: 'json',
+            q: input,
+            limit: 5,
+            addressdetails: 1,
+            featuretype: 'city',
+            'accept-language': 'en'
+          }
+        }
+      );
+
+      // Filter and format suggestions
+      const formattedSuggestions = response.data
+        .filter(item => item.type === 'city' || item.type === 'administrative')
+        .map(item => ({
+          ...item,
+          formattedName: formatLocationName(item)
+        }));
+
+      setSuggestions(formattedSuggestions);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      setSuggestions([]);
+    }
+  };
+
+  // Add debounced version of fetchSuggestions
+  const debouncedFetchSuggestions = debounce(fetchSuggestions, 300);
+
+  // Update handleLocationChange
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    setLocation(value);
+    debouncedFetchSuggestions(value);
+  };
+
+  // Update handleSelectSuggestion
+  const handleSelectSuggestion = (suggestion) => {
+    const locationName = suggestion.formattedName.cityName;
+    setLocation(locationName);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    handleSearch(locationName);
+  };
+
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 bg-gray-100">
+    <div className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 bg-gray-100">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
           Get Real-Time Weather Alerts
@@ -88,26 +162,57 @@ const Hero = ({ onCityChange }) => {
           Stay updated on rain and climate changes in real-time
         </p>
 
-        {/* Search Bar */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-16">
           <div className="relative w-full md:w-96">
             <input
               type="text"
               placeholder="Enter location..."
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={handleLocationChange}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                  setShowSuggestions(false);
+                }
+              }}
               className="w-full px-5 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button
-              onClick={handleSearch}
+              onClick={() => {
+                handleSearch(location);
+                setShowSuggestions(false);
+              }}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-200 rounded-lg transition-all"
             >
               🔍
             </button>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors 
+                     first:rounded-t-lg last:rounded-b-lg border-b last:border-b-0 border-gray-200"
+                  >
+                    <div className="text-gray-900 font-medium">
+                      {suggestion.formattedName.cityName}
+                    </div>
+                    <div className="text-sm text-gray-500 truncate">
+                      {suggestion.formattedName.fullName}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button
-            onClick={handleSearch}
+            onClick={() => {
+              handleSearch(location);
+              setShowSuggestions(false);
+            }}
             className="w-full md:w-auto px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             Search Weather
@@ -119,7 +224,6 @@ const Hero = ({ onCityChange }) => {
           </div>
         )}
 
-        {/* Searched Weather Result */}
         {searchWeather && (
           <>
             <div className="bg-white p-6 rounded-xl border border-gray-300 shadow-lg mb-8">
@@ -129,11 +233,11 @@ const Hero = ({ onCityChange }) => {
               <p className="text-gray-700 mt-2">Humidity: {searchWeather.humidity}%</p>
               <p className="text-gray-700 mt-2">Wind: {searchWeather.wind} m/s</p>
             </div>
-            <WeatherSafety weather={searchWeather} />
+
           </>
         )}
+<WeatherSafety searchLocation={searchWeather ? searchWeather.city : "Hyderabad"} />
 
-        {/* Weather Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
           {weatherData.length > 0 ? (
             weatherData.map((city, index) => (
@@ -145,7 +249,24 @@ const Hero = ({ onCityChange }) => {
             </div>
           )}
         </div>
+
+        <SunriseSunset location={searchWeather ? searchWeather.city : "Hyderabad"} />
       </div>
+
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed right-6 bottom-6 p-4 bg-green-500 text-white rounded-full shadow-lg 
+                 hover:bg-green-600 transition-all duration-300 transform hover:scale-110
+                 focus:outline-none focus:ring-2 focus:ring-green-500/50 z-40"
+        aria-label="Open chat"
+      >
+        <div className="flex items-center">
+          <span className="text-xl mr-2">🌦</span>
+          <span className="hidden md:inline">Ask Nimbus</span>
+        </div>
+      </button>
+
+      {isChatOpen && <ChatBox onClose={() => setIsChatOpen(false)} />}
     </div>
   );
 };
