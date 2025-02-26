@@ -12,7 +12,34 @@ A next-gen **AI-powered weather assistant** that provides real-time weather insi
 - **Seamless UI & UX** – Built with **Tailwind CSS** and enhanced by **Framer Motion** animations.
 - **Secure & Scalable** – Uses modern development tools and best practices.
 
-## 🚠 Nimbus AI Chatbot: Your Personal Weather Assistant
+## 📌 Pages in Nimbus AI
+
+All pages and components are accessible through the main route (`/`) and dynamically rendered based on user interactions.
+
+### 1️⃣ Home Page – Overview of Nimbus AI with key features  
+![Home Page](https://github.com/user-attachments/assets/ee48bc65-c203-4b79-b22e-11058133d6b6)
+
+### 2️⃣ Hero Section – Engaging introduction with real-time weather snapshots  
+![Hero Section](https://github.com/user-attachments/assets/dc31f4cd-a59a-4c0d-a02e-3a54beca2c46)
+
+### 3️⃣ Graphs Page – Interactive charts displaying historical and predictive weather trends  
+![Graphs Page](https://github.com/user-attachments/assets/2b62f324-cb5a-4cff-9b46-e9dccdceff88)
+
+### 4️⃣ Chatbot Page – AI-powered chatbot for real-time weather assistance  
+![Chatbot Page](https://github.com/user-attachments/assets/c9672c14-d0b4-43d7-83d2-7ecd9d2ac5df)
+
+### 5️⃣ Subscription Page – Users can subscribe to weather alerts  
+![Subscription Page](https://github.com/user-attachments/assets/2aa0ce9d-fb89-4f6f-861f-aee49f083c5e)
+
+### 6️⃣ Email Verification Page – Ensures secure access to subscription services  
+![Email Verification Page](https://github.com/user-attachments/assets/1b729011-0510-4060-8856-3cdeb8ef3fc9)
+
+### 7️⃣ Email View – Example of an email notification sent to subscribers  
+![Email View](https://github.com/user-attachments/assets/b6f74b07-4b51-48b7-86b0-64a5093498d8)
+
+
+
+## 🤖 Nimbus AI Chatbot: Your Personal Weather Assistant
 
 Nimbus AI isn’t just a chatbot—it’s a **smart conversational AI** designed to provide accurate, real-time weather insights in a natural, human-like manner. Whether you need a **quick forecast**, **safety recommendations**, or **weather comparisons**, Nimbus AI delivers **context-aware responses** using **Google Gemini AI** and a specialized weather dataset.
 
@@ -121,22 +148,15 @@ Nimbus AI automatically checks weather conditions daily at **8:00 AM** for all s
 - **Email Service:** Brevo API for sending alerts
 - **Scheduler:** Runs daily weather checks and alerts subscribers
 
-## 🏆 Roadmap & Future Enhancements
-
-- 🌟 **AI-based severe weather alerts**
-- 💼 **Integration with satellite weather data**
-- 🌍 **Advanced map-based weather visualization**
-- 📢 **Custom push notifications for weather alerts**
 
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to submit a **pull request** or open an **issue**.
 
-## 📜 License
 
-This project is **open-source** and licensed under the **MIT License**.
 
 ---
 
 ### ⛈️ *Stay informed. Stay safe. Powered by Nimbus AI.*
+
 
